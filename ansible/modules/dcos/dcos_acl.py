@@ -35,6 +35,11 @@ options:
         required: false
         default: present
         choices: [ present, absent ]
+    ssl_verify:
+        description:
+            - Verify SSL certificates.
+        required: false
+        default: true
     dcos_credentials:
         description:
             - Credentials for actions against DCOS, acquired via C(dcos_facts).
@@ -62,42 +67,7 @@ EXAMPLES = '''
 '''
 
 from ansible.module_utils.basic import *
-
-################################################################################
-## BEGIN GIANT COPY/PASTE BLOCK FOR ALL DCOS MODULES
-import requests
-def dcos_api(method, endpoint, body=None, params=None):
-    url = "{url}acs/api/v1{endpoint}".format(
-                            url=params['dcos_credentials']['url'],
-                            endpoint=endpoint)
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': "token={}".format(params['dcos_credentials']['token']),
-    }
-    if method == 'GET':
-        response = requests.get(url, headers=headers, verify=False) # TODO: verify?
-    elif method == 'PUT':
-        response = requests.put(url, json=body, headers=headers, verify=False) # TODO: verify?
-    elif method == 'PATCH':
-        response = requests.patch(url, json=body, headers=headers, verify=False) # TODO: verify?
-    elif method == 'DELETE':
-        response = requests.delete(url, headers=headers, verify=False) # TODO: verify?
-
-    try:
-        response_json = response.json()
-    except:
-        response_json = {}
-
-    return {
-        'url': url,
-        'status_code': response.status_code,
-        'text': response.text,
-        'json': response_json,
-        'request_body': body,
-        'requiest_headers': headers,
-    }
-## END GIANT COPY/PASTE BLOCK FOR ALL DCOS MODULES
-################################################################################
+from ansible.module_utils.dcos import dcos_api
 
 
 def dcos_acl_absent(params):
@@ -200,6 +170,7 @@ def main():
             'default': 'present',
             'choices': [ 'present', 'absent' ]
         },
+        'ssl_verify': { 'type': 'bool', 'required': False, 'default': True },
         'dcos_credentials': { 'type': 'dict', 'required': True },
     })
     if module.params['state'] == 'present':
