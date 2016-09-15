@@ -1,0 +1,89 @@
+- hosts: localhost
+  tasks:
+    - name: Get DCOS credentials
+      dcos_facts:
+    - debug: msg="{{ dcos_credentials }}"
+
+    - name: create a first test user
+      dcos_user:
+        uid: test-user-dcos1
+        password: "L4m3Password"
+        description: "Group Test User 1"
+        state: present
+        dcos_credentials: "{{ dcos_credentials }}"
+      register: result
+    - debug: var=result
+
+    - name: create a second test user
+      dcos_user:
+        uid: test-user-dcos2
+        password: "L4m3Password"
+        description: "Group Test User 2"
+        state: present
+        dcos_credentials: "{{ dcos_credentials }}"
+      register: result
+    - debug: var=result
+
+    - name: create a test group containing the first test user
+      dcos_group:
+        gid: test-group-dcos
+        description: "The Amazing Group of Awesomeness"
+        users:
+          - test-user-dcos1
+        state: present
+        dcos_credentials: "{{ dcos_credentials }}"
+      register: result
+    - debug: var=result
+
+    - name: create test ACL and assign test user and group
+      dcos_acl:
+        rid: "dcos:service:marathon:marathon-testmarathon"
+        description: Test ACL
+        group_permissions:
+          - gid: test-group-dcos
+            action: full
+        user_permissions:
+          - uid: test-user-dcos2
+        dcos_credentials: "{{ dcos_credentials }}"
+      register: result
+    - debug: var=result
+
+    - name: modify test ACL
+      dcos_acl:
+        rid: "dcos:service:marathon:marathon-testmarathon"
+        description: "Test ACL of Doom!"
+        group_permissions:
+          - gid: test-group-dcos
+            action: read
+        user_permissions:
+          - uid: test-user-dcos2
+            action: read, update
+        dcos_credentials: "{{ dcos_credentials }}"
+      register: result
+    - debug: var=result
+
+    - name: remove test ACL
+      dcos_acl:
+        rid: "dcos:service:marathon:marathon-testmarathon"
+        state: absent
+        dcos_credentials: "{{ dcos_credentials }}"
+      register: result
+    - debug: var=result
+
+    - name: remove the newly created group
+      dcos_group:
+        gid: test-group-dcos
+        state: absent
+        dcos_credentials: "{{ dcos_credentials }}"
+
+    - name: remove first test user
+      dcos_user:
+        uid: test-user-dcos1
+        state: absent
+        dcos_credentials: "{{ dcos_credentials }}"
+
+    - name: remove second test user
+      dcos_user:
+        uid: test-user-dcos2
+        state: absent
+        dcos_credentials: "{{ dcos_credentials }}"
