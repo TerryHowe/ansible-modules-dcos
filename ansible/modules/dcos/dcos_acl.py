@@ -71,6 +71,18 @@ from ansible.module_utils.dcos import dcos_api
 
 
 def dcos_acl_absent(params):
+    result = dcos_api('GET', '/acls/{}/permissions'.format(params['rid']), params=params)
+    changed, meta = _add_or_modify_membership('users', 'uid', None, result, params)
+    changed, meta = _add_or_modify_membership('groups', 'gid', None, result, params)
+
+    result = dcos_api('DELETE', '/acls/{}'.format(params['rid']), params=params)
+    if result['status_code'] == 204:
+        return True, result
+
+    else:
+        module.fail_json(msg='Unrecognized response from server',
+                            debug=result)
+
     return False, params
 
 
@@ -89,9 +101,10 @@ def _add_or_modify_membership(type_label, id_label, section, result, params):
         for action in actor['actions']:
             current_permissions.add( (actor[id_label], action['name']) )
     expected_permissions = set()
-    for actor in params[section]:
-        for action in actor.get('action', 'read').split(','):
-            expected_permissions.add( (actor[id_label], action.strip()) )
+    if section: # if no section, all permissions will be removed
+        for actor in params[section]:
+            for action in actor.get('action', 'read').split(','):
+                expected_permissions.add( (actor[id_label], action.strip()) )
 
     changed = False
     permissions_to_remove = current_permissions - expected_permissions
