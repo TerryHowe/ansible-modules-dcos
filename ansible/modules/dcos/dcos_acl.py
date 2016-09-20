@@ -175,8 +175,8 @@ def main():
     module = AnsibleModule(argument_spec={
         'rid': { 'type': 'str', 'required': True },
         'description': { 'type': 'str', 'required': False },
-        'group_permissions': { 'type': 'list', 'required': False },
-        'user_permissions': { 'type': 'list', 'required': False },
+        'group_permissions': { 'type': 'list', 'required': False, 'default': [] },
+        'user_permissions': { 'type': 'list', 'required': False, 'default': [] },
         'state': {
             'type': 'str',
             'required': False,
