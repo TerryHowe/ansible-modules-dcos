@@ -22,6 +22,8 @@ def main():
     module = AnsibleModule(argument_spec={})
     token = subprocess.check_output(["dcos", "config", "show", "core.dcos_acs_token"]).rstrip()
     url = subprocess.check_output(["dcos", "config", "show", "core.dcos_url"]).rstrip()
+    if not url.endswith('/'):
+        url = url + '/'
     facts = {
         'dcos_credentials': { 'token': token, 'url': url }
     }
