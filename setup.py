@@ -39,5 +39,6 @@ setup(name='ansible-modules-dcos',
       install_requires = [
         'ansible>2.0.0',
         'dcoscli>0.4.5',
+        'toml',
       ],
 )

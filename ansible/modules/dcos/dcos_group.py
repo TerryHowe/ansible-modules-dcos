@@ -24,15 +24,6 @@ options:
         required: false
         default: present
         choices: [ present, absent ]
-    ssl_verify:
-        description:
-            - Verify SSL certificates.
-        required: false
-        default: true
-    dcos_credentials:
-        description:
-            - Credentials for actions against DCOS, acquired via C(dcos_facts).
-        required: true
 '''
 
 EXAMPLES = '''
@@ -43,13 +34,11 @@ EXAMPLES = '''
      users:
         - myuid1
         - myuid2
-     dcos_credentials: "{{ dcos_credentials }}"
 
 - name: Remove a DCOS group
   dcos_group:
      uid: "mygroupname"
      state: absent
-     dcos_credentials: "{{ dcos_credentials }}"
 '''
 
 from ansible.module_utils.basic import *
@@ -57,7 +46,7 @@ from ansible.module_utils.dcos import dcos_api
 
 
 def dcos_group_absent(params):
-    result = dcos_api('DELETE', '/groups/{}'.format(params['gid']), params=params)
+    result = dcos_api('DELETE', '/groups/{}'.format(params['gid']))
     if result['status_code'] == 204: # Deleted
         return True, result
     if result['status_code'] == 400: # Does Not Exist
@@ -74,7 +63,7 @@ def dcos_group_present(params):
 
 
 def _add_or_modify_membership(params):
-    result = dcos_api('GET', '/groups/{}/users'.format(params['gid']), params=params)
+    result = dcos_api('GET', '/groups/{}/users'.format(params['gid']))
     current_members = set([ x['user']['uid'] for x in result['json']['array']])
     expected_members = set(params['users'])
 
@@ -85,8 +74,7 @@ def _add_or_modify_membership(params):
     for member in members_to_remove:
         changed = True
         result = dcos_api('DELETE',
-            '/groups/{gid}/users/{uid}'.format(gid=params['gid'], uid=member),
-            params=params)
+            '/groups/{gid}/users/{uid}'.format(gid=params['gid'], uid=member))
         if result['status_code'] != 204:
             module.fail_json(msg="Unable to remove user from group",
                     debug=result)
@@ -94,8 +82,7 @@ def _add_or_modify_membership(params):
     for member in members_to_add:
         changed = True
         result = dcos_api('PUT',
-            '/groups/{gid}/users/{uid}'.format(gid=params['gid'], uid=member),
-            params=params)
+            '/groups/{gid}/users/{uid}'.format(gid=params['gid'], uid=member))
         if result['status_code'] != 204:
             module.fail_json(msg="Unable to add user to group",
                     debug=result)
@@ -107,7 +94,7 @@ def _create_or_update_group(params):
     body = {
         'description': params['description']
     }
-    result = dcos_api('PUT', '/groups/{}'.format(params['gid']), body=body, params=params)
+    result = dcos_api('PUT', '/groups/{}'.format(params['gid']), body=body)
     if result['status_code'] == 201:
         return True, result
 
@@ -117,7 +104,7 @@ def _create_or_update_group(params):
 
     changed = False
     body = {}
-    result = dcos_api('GET', '/groups/{}'.format(params['gid']), params=params)
+    result = dcos_api('GET', '/groups/{}'.format(params['gid']))
     description = result['json'].get('description')
     if description != params['description']:
         changed = True
@@ -126,7 +113,7 @@ def _create_or_update_group(params):
     if not changed:
         return False, result
 
-    result = dcos_api('PATCH', '/groups/{}'.format(params['gid']), body=body, params=params)
+    result = dcos_api('PATCH', '/groups/{}'.format(params['gid']), body=body)
     if result['status_code'] == 204:
         return True, result
 
@@ -146,8 +133,6 @@ def main():
             'default': 'present',
             'choices': [ 'present', 'absent' ]
         },
-        'ssl_verify': { 'type': 'bool', 'required': False, 'default': True },
-        'dcos_credentials': { 'type': 'dict', 'required': True },
     })
     if module.params['state'] == 'present':
         if module.params['users'] and module.params['description']:

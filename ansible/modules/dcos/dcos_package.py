@@ -30,10 +30,6 @@ options:
             group, set this to C(false). Defaults to C(true).
         required: false
         default: true
-    dcos_credentials:
-        description:
-            - Credentials for actions against DCOS, acquired via C(dcos_facts).
-        required: true
 '''
 
 EXAMPLES = '''
@@ -47,14 +43,12 @@ EXAMPLES = '''
         cpus: 2.0
         mem: 1536
         instances: 1
-    dcos_credentials: "{{ dcos_credentials }}"
 
 - name: Uninstall user Marathon
   dcos_package:
      package: marathon
      app_id: "/testuser/marathon-testuser"
      state: absent
-     dcos_credentials: "{{ dcos_credentials }}"
 '''
 
 import json
@@ -62,7 +56,6 @@ import os
 import subprocess
 import tempfile
 from ansible.module_utils.basic import *
-from ansible.module_utils.dcos import dcos_api
 
 
 def dcos_cli(args):
@@ -176,7 +169,6 @@ def main():
             'choices': [ 'present', 'absent' ]
         },
         'delete_empty_group': { 'type': 'bool', 'required': False, 'default': True },
-        'dcos_credentials': { 'type': 'dict', 'required': True },
     })
     if module.params['state'] == 'present':
         if module.params['options']:

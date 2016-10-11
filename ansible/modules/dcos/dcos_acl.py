@@ -35,15 +35,6 @@ options:
         required: false
         default: present
         choices: [ present, absent ]
-    ssl_verify:
-        description:
-            - Verify SSL certificates.
-        required: false
-        default: true
-    dcos_credentials:
-        description:
-            - Credentials for actions against DCOS, acquired via C(dcos_facts).
-        required: true
 '''
 
 EXAMPLES = '''
@@ -57,13 +48,11 @@ EXAMPLES = '''
      user_permissions:
         - uid: "auseraccount"
           action: read,update
-     dcos_credentials: "{{ dcos_credentials }}"
 
 - name: Remove the ACL for package management
   dcos_acl:
      uid: "dcos:adminrouter:package"
      state: absent
-     dcos_credentials: "{{ dcos_credentials }}"
 '''
 
 from ansible.module_utils.basic import *
@@ -71,11 +60,11 @@ from ansible.module_utils.dcos import dcos_api
 
 
 def dcos_acl_absent(params):
-    result = dcos_api('GET', '/acls/{}/permissions'.format(params['rid']), params=params)
+    result = dcos_api('GET', '/acls/{}/permissions'.format(params['rid']))
     changed, meta = _add_or_modify_membership('users', 'uid', None, result, params)
     changed, meta = _add_or_modify_membership('groups', 'gid', None, result, params)
 
-    result = dcos_api('DELETE', '/acls/{}'.format(params['rid']), params=params)
+    result = dcos_api('DELETE', '/acls/{}'.format(params['rid']))
     if result['status_code'] == 204:
         return True, result
 
@@ -117,8 +106,7 @@ def _add_or_modify_membership(type_label, id_label, section, result, params):
                     rid=params['rid'],
                     type_label=type_label,
                     actor_id=permission[0],
-                    action=permission[1]),
-            params=params)
+                    action=permission[1]))
         if result['status_code'] != 204:
             module.fail_json(msg='Unable to remove permission',
                                 debug=result)
@@ -130,8 +118,7 @@ def _add_or_modify_membership(type_label, id_label, section, result, params):
                     rid=params['rid'],
                     type_label=type_label,
                     actor_id=permission[0],
-                    action=permission[1]),
-            params=params)
+                    action=permission[1]))
         if result['status_code'] != 204:
             module.fail_json(msg='Unable to add permission',
                                 debug=result)
@@ -143,7 +130,7 @@ def _create_or_update_acl(params):
     body = {
         'description': params['description']
     }
-    result = dcos_api('PUT', '/acls/{}'.format(params['rid']), body=body, params=params)
+    result = dcos_api('PUT', '/acls/{}'.format(params['rid']), body=body)
     if result['status_code'] == 201:
         return True, result
 
@@ -153,7 +140,7 @@ def _create_or_update_acl(params):
 
     changed = False
     body = {}
-    result = dcos_api('GET', '/acls/{}'.format(params['rid']), params=params)
+    result = dcos_api('GET', '/acls/{}'.format(params['rid']))
     description = result['json'].get('description')
     if description != params['description']:
         changed = True
@@ -162,7 +149,7 @@ def _create_or_update_acl(params):
     if not changed:
         return False, result
 
-    result = dcos_api('PATCH', '/acls/{}'.format(params['rid']), body=body, params=params)
+    result = dcos_api('PATCH', '/acls/{}'.format(params['rid']), body=body)
     if result['status_code'] == 204:
         return True, result
 
@@ -183,8 +170,6 @@ def main():
             'default': 'present',
             'choices': [ 'present', 'absent' ]
         },
-        'ssl_verify': { 'type': 'bool', 'required': False, 'default': True },
-        'dcos_credentials': { 'type': 'dict', 'required': True },
     })
     if module.params['state'] == 'present':
         if (module.params['description']
