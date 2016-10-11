@@ -29,5 +29,5 @@ def dcos_api(method, endpoint, body=None, params=None):
         'text': response.text,
         'json': response_json,
         'request_body': body,
-        'requiest_headers': headers,
+        'request_headers': headers,
     }
