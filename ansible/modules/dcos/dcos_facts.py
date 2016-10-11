@@ -20,8 +20,12 @@ from ansible.module_utils.basic import *
 
 def main():
     module = AnsibleModule(argument_spec={})
-    token = subprocess.check_output(["dcos", "config", "show", "core.dcos_acs_token"]).rstrip()
-    url = subprocess.check_output(["dcos", "config", "show", "core.dcos_url"]).rstrip()
+    try:
+        token = subprocess.check_output("dcos config show core.dcos_acs_token".split()).rstrip()
+    except Exception:
+        subprocess.check_output("dcos auth login".split())
+        token = subprocess.check_output("dcos config show core.dcos_acs_token".split()).rstrip()
+    url = subprocess.check_output("dcos config show core.dcos_url".split()).rstrip()
     if not url.endswith('/'):
         url = url + '/'
     facts = {
