@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  tasks:
+   - dcos_facts:
+     register: dcos_facts
+
+   - debug: msg="{{ dcos_facts.ansible_facts.dcos_credentials }}"
+   - dcos_user:
+       uid: "bob"
+       description: 'bob'
+       password: 'fooBar123ASDF'
+       state: present
+       dcos_credentials: "{{ dcos_facts.ansible_facts.dcos_credentials }}"
