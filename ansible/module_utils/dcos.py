@@ -4,30 +4,40 @@ import toml
 import urlparse
 
 
-def dcos_get_configuration(endpoint):
+def _dcos_read_configuration():
     home = expanduser("~")
     with open("{}/.dcos/dcos.toml".format(home)) as conffile:
         try:
             config = toml.loads(conffile.read())
-        except Exception:
-            raise Exception("Error parsing dcos.toml file")
-    core = config.get('core', {})
-    url = core.get('dcos_url', '')
-    token = core.get('dcos_acs_token', '')
-    ###subprocess.check_output("dcos auth login".split())
-    ssl_verify = core.get('ssl_verify', True)
+            return config.get('core', {})
+        except Exception as e:
+            raise Exception("Error parsing dcos.toml file: " + str(e))
 
+
+def _dcos_parse_url(url, endpoint):
     result = urlparse.urlsplit(url)
     netloc = result.netloc.split('@')[-1]
     result = result._replace(netloc=netloc)
     path = "acs/api/v1{endpoint}".format(endpoint=endpoint)
     result = result._replace(path=path)
-    url = urlparse.urlunsplit(result)
+    return urlparse.urlunsplit(result)
+
+
+def _dcos_get_configuration(endpoint):
+    core = _dcos_read_configuration()
+    token = core.get('dcos_acs_token', '')
+    if not token:
+        subprocess.check_output("dcos auth login".split())
+        core = _dcos_read_configuration()
+        token = core.get('dcos_acs_token', 'bogus')
+    url = _dcos_parse_url(core.get('dcos_url', ''), endpoint)
+    ssl_verify = core.get('ssl_verify', True)
+
     return url, token, ssl_verify
 
 
 def dcos_api(method, endpoint, body=None):
-    url, token, ssl_verify = dcos_get_configuration(endpoint)
+    url, token, ssl_verify = _dcos_get_configuration(endpoint)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': "token={}".format(token),
