@@ -1,9 +1,13 @@
 import requests
+import urlparse
 
 def dcos_api(method, endpoint, body=None, params=None):
-    url = "{url}acs/api/v1{endpoint}".format(
-                            url=params['dcos_credentials']['url'],
-                            endpoint=endpoint)
+    result = urlparse.urlsplit(params['dcos_credentials']['url'])
+    netloc = result.netloc.split('@')[-1]
+    result = result._replace(netloc=netloc)
+    path = "acs/api/v1{endpoint}".format(endpoint=endpoint)
+    result = result._replace(path=path)
+    url = urlparse.urlunsplit(result)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': "token={}".format(params['dcos_credentials']['token']),
