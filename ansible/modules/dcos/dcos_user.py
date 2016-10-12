@@ -67,7 +67,6 @@ def dcos_user_present(params):
     result = client.put('/users/{}'.format(params['uid']), body=body)
     if result['changed']:
         module.exit_json(**result)
-
     elif result['status_code'] != 409:
         module.fail_json(**result)
 
@@ -108,12 +107,11 @@ def main():
     })
     if module.params['state'] == 'present':
         if module.params['password'] and module.params['description']:
-            has_changed, meta = dcos_user_present(module.params)
+            dcos_user_present(module.params)
         else:
-            module.fail_json(msg="Password and description required for state=present")
+            module.fail_json(msg="Password and description required for state=present", rc=1)
     else:
-        has_changed, meta = dcos_user_absent(module.params)
-    module.exit_json(changed=has_changed, meta=meta)
+        dcos_user_absent(module.params)
 
 
 if __name__ == '__main__':

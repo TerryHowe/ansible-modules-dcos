@@ -64,15 +64,9 @@ def dcos_acl_absent(params):
     changed, meta = _add_or_modify_membership('users', 'uid', None, result, params)
     changed, meta = _add_or_modify_membership('groups', 'gid', None, result, params)
 
-    result = dcos_api('DELETE', '/acls/{}'.format(params['rid']))
-    if result['status_code'] == 204:
-        return True, result
-
-    else:
-        module.fail_json(msg='Unrecognized response from server',
-                            debug=result)
-
-    return False, params
+    client = dcos.DcosClient()
+    result = client.delete('/acls/{}'.format(params['rid']))
+    module.exit_json(**result)
 
 
 def dcos_acl_present(params):
@@ -175,11 +169,11 @@ def main():
         if (module.params['description']
                 and (module.params['group_permissions']
                 or module.params['user_permissions'])):
-            has_changed, meta = dcos_acl_present(module.params)
+            dcos_acl_present(module.params)
         else:
             module.fail_json(msg="Permissions and description required for state=present")
     else:
-        has_changed, meta = dcos_acl_absent(module.params)
+        dcos_acl_absent(module.params)
 
     module.exit_json(changed=has_changed, meta=meta)
 

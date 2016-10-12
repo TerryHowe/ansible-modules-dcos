@@ -97,6 +97,3 @@ class DcosClient:
             result['failed'] = False
             result.pop('debug', None)
         return result
-
-def dcos_client():
-    return DcosClient()

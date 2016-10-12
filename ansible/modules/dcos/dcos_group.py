@@ -42,83 +42,68 @@ EXAMPLES = '''
 '''
 
 from ansible.module_utils.basic import *
-from ansible.module_utils.dcos import dcos_api
+from ansible.module_utils import dcos
 
 
 def dcos_group_absent(params):
-    result = dcos_api('DELETE', '/groups/{}'.format(params['gid']))
-    if result['status_code'] == 204: # Deleted
-        return True, result
-    if result['status_code'] == 400: # Does Not Exist
-        return False, result
-
-    module.fail_json(msg="Unrecognized response from server",
-                        debug=result)
+    client = dcos.DcosClient()
+    result = client.delete('/groups/{}'.format(params['gid']))
+    module.exit_json(**result)
 
 
 def dcos_group_present(params):
-    changed, meta = _create_or_update_group(params)
-    changed, meta = _add_or_modify_membership(params)
-    return changed, meta
+    client = dcos.DcosClient()
+    body = {
+        'description': params['description']
+    }
+    path = '/groups/{}'.format(params['gid'])
+    result = client.put(path, body)
+    if result['changed']:
+        module.exit_json(**result)
+    elif result['status_code'] != 409:
+        module.fail_json(**result)
 
+    changed = False
+    body = {}
+    path = '/groups/{}'.format(params['gid'])
+    result = client.get(path)
+    description = result['json'].get('description')
+    if description != params['description']:
+        changed = True
+        body = {'description': params['description']}
+        path = '/groups/{}'.format(params['gid'])
+        result = client.patch(path, body)
 
-def _add_or_modify_membership(params):
-    result = dcos_api('GET', '/groups/{}/users'.format(params['gid']))
+    result = client.get('/groups/{}/users'.format(params['gid']))
     current_members = set([ x['user']['uid'] for x in result['json']['array']])
     expected_members = set(params['users'])
 
     changed = False
-    members_to_remove = current_members - expected_members
-    members_to_add = expected_members - current_members
+    remove_them = current_members - expected_members
+    add_them = expected_members - current_members
+    changed = changed or _remove_members(client, gid, remove_them)
+    changed = changed or _add_members(client, gid, add_them)
 
+def _remove_members(client, gid, members_ro_remove):
+    changed = False
     for member in members_to_remove:
         changed = True
-        result = dcos_api('DELETE',
-            '/groups/{gid}/users/{uid}'.format(gid=params['gid'], uid=member))
-        if result['status_code'] != 204:
-            module.fail_json(msg="Unable to remove user from group",
-                    debug=result)
+        path = '/groups/{gid}/users/{uid}'.format(gid=gid, uid=member)
+        result = client.delete(path)
+        if result['failed']:
+            module.fail_json(**result)
+    return changed
 
+
+def _add_members(client, gid, members_ro_remove):
+    changed = False
     for member in members_to_add:
         changed = True
-        result = dcos_api('PUT',
-            '/groups/{gid}/users/{uid}'.format(gid=params['gid'], uid=member))
-        if result['status_code'] != 204:
-            module.fail_json(msg="Unable to add user to group",
-                    debug=result)
-
-    return changed, result
-
-
-def _create_or_update_group(params):
-    body = {
-        'description': params['description']
-    }
-    result = dcos_api('PUT', '/groups/{}'.format(params['gid']), body=body)
-    if result['status_code'] == 201:
-        return True, result
-
-    elif result['status_code'] != 409:
-        module.fail_json(msg="Unrecognized response from server",
-                            debug=result)
-
-    changed = False
-    body = {}
-    result = dcos_api('GET', '/groups/{}'.format(params['gid']))
-    description = result['json'].get('description')
-    if description != params['description']:
-        changed = True
-        body['description'] = params['description']
-
-    if not changed:
-        return False, result
-
-    result = dcos_api('PATCH', '/groups/{}'.format(params['gid']), body=body)
-    if result['status_code'] == 204:
-        return True, result
-
-    module.fail_json(msg='Unrecognized response from server',
-                        debug=result)
+        path = '/groups/{gid}/users/{uid}'.format(gid=gid, uid=member)
+        result = client.put(path, {})
+        if result['failed']:
+            module.fail_json(**result)
+    return changed
 
 
 def main():
@@ -136,13 +121,11 @@ def main():
     })
     if module.params['state'] == 'present':
         if module.params['users'] and module.params['description']:
-            has_changed, meta = dcos_group_present(module.params)
+            dcos_group_present(module.params)
         else:
-            module.fail_json(msg="User list and description required for state=present")
+            module.fail_json(msg="User list and description required for state=present", rc=1)
     else:
-        has_changed, meta = dcos_group_absent(module.params)
-
-    module.exit_json(changed=has_changed, meta=meta)
+        dcos_group_absent(module.params)
 
 
 if __name__ == '__main__':
