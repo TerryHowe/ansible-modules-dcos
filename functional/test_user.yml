@@ -1,10 +1,52 @@
 ---
 - hosts: localhost
   tasks:
-   - dcos_user:
-       uid: "bob"
-       description: 'bob'
-       password: 'fooBar123ASDF'
-   - dcos_user:
-       uid: "bob"
-       state: 'absent'
+    - dcos_user: uid="bob" state='absent'
+
+    - dcos_user:
+        uid: "bob"
+        description: 'bob'
+        password: 'fooBar123ASDF'
+      register: 'dcos_user'
+    - assert: { that: "{{dcos_user.changed}} == True" }
+    - assert: { that: "{{dcos_user.failed}} == False" }
+    - assert: { that: "{{dcos_user.rc}} == 0" }
+    - assert: { that: "{{dcos_user.status_code}} == 201" }
+
+    - dcos_user:
+        uid: "bob"
+        description: 'bob noo'
+        password: 'fooBar123ASDF'
+      register: 'dcos_user'
+    - assert: { that: "{{dcos_user.changed}} == True" }
+    - assert: { that: "{{dcos_user.failed}} == False" }
+    - assert: { that: "{{dcos_user.rc}} == 0" }
+    - assert: { that: "{{dcos_user.status_code}} == 204" }
+
+    - dcos_user:
+        uid: "bob"
+        description: 'bob noo'
+        password: 'fooBar123ASDF'
+      register: 'dcos_user'
+    - assert: { that: "{{dcos_user.changed}} == False" }
+    - assert: { that: "{{dcos_user.failed}} == False" }
+    - assert: { that: "{{dcos_user.rc}} == 0" }
+    - assert: { that: "{{dcos_user.status_code}} == 200" }
+
+    - dcos_user:
+        uid: "bob"
+        state: 'absent'
+      register: 'dcos_user'
+    - assert: { that: "{{dcos_user.changed}} == True" }
+    - assert: { that: "{{dcos_user.failed}} == False" }
+    - assert: { that: "{{dcos_user.rc}} == 0" }
+    - assert: { that: "{{dcos_user.status_code}} == 204" }
+
+    - dcos_user:
+        uid: "bob"
+        state: 'absent'
+      register: 'dcos_user'
+    - assert: { that: "{{dcos_user.changed}} == False" }
+    - assert: { that: "{{dcos_user.failed}} == False" }
+    - assert: { that: "{{dcos_user.rc}} == 0" }
+    - assert: { that: "{{dcos_user.status_code}} == 400" }

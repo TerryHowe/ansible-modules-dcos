@@ -49,18 +49,13 @@ EXAMPLES = '''
 '''
 
 from ansible.module_utils.basic import *
-from ansible.module_utils.dcos import dcos_api
+from ansible.module_utils import dcos
 
 
 def dcos_user_absent(params):
-    result = dcos_api('DELETE', '/users/{}'.format(params['uid']))
-    if result['status_code'] == 204: # Deleted
-        return True, result
-    if result['status_code'] == 400: # Does Not Exist
-        return False, result
-
-    module.fail_json(msg="Unrecognized response from server",
-                        debug=result)
+    client = dcos.DcosClient()
+    result = client.delete('/users/{}'.format(params['uid']))
+    module.exit_json(**result)
 
 
 def dcos_user_present(params):
@@ -68,17 +63,17 @@ def dcos_user_present(params):
         'description': params['description'],
         'password': params['password'],
     }
-    result = dcos_api('PUT', '/users/{}'.format(params['uid']), body=body)
-    if result['status_code'] == 201:
-        return True, result
+    client = dcos.DcosClient()
+    result = client.put('/users/{}'.format(params['uid']), body=body)
+    if result['changed']:
+        module.exit_json(**result)
 
     elif result['status_code'] != 409:
-        module.fail_json(msg="Unrecognized response from server",
-                            debug=result)
+        module.fail_json(**result)
 
     changed = False
     body = {}
-    result = dcos_api('GET', '/users/{}'.format(params['uid']))
+    result = client.get('/users/{}'.format(params['uid']))
     description = result['json'].get('description')
     if description != params['description']:
         changed = True
@@ -88,14 +83,13 @@ def dcos_user_present(params):
         body['password'] = params['password']
 
     if not changed:
-        return False, result
+        module.exit_json(**result)
 
-    result = dcos_api('PATCH', '/users/{}'.format(params['uid']), body=body)
+    result = client.patch('/users/{}'.format(params['uid']), body=body)
     if result['status_code'] == 204:
-        return True, result
+        module.exit_json(**result)
 
-    module.fail_json(msg="Unrecognized response from server",
-                        debug=result)
+    module.fail_json(**result)
 
 
 def main():
