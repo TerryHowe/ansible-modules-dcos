@@ -1,0 +1,71 @@
+---
+- hosts: localhost
+  vars:
+    user_one: 'one'
+    user_two: 'two'
+    group_name: 'bobs'
+  tasks:
+    - dcos_group: gid="{{group_name}}" state='absent'
+    - dcos_user:
+        uid: "{{user_one}}"
+        description: "{{user_one}} user"
+        password: "Abcd1234!!!!"
+    - dcos_user:
+        uid: "{{user_two}}"
+        description: "{{user_two}} user"
+        password: "Abcd1234!!!!"
+
+    - dcos_group:
+        gid: "{{group_name}}"
+        description: '{{group_name}}'
+      register: 'dcos_group'
+    - assert: { that: "{{dcos_group.changed}} == True" }
+    - assert: { that: "{{dcos_group.failed}} == False" }
+    - assert: { that: "{{dcos_group.rc}} == 0" }
+    - assert: { that: "{{dcos_group.status_code}} == 201" }
+
+    - dcos_group:
+        gid: "{{group_name}}"
+        description: '{{group_name}} noo'
+      register: 'dcos_group'
+    - assert: { that: "{{dcos_group.changed}} == True" }
+    - assert: { that: "{{dcos_group.failed}} == False" }
+    - assert: { that: "{{dcos_group.rc}} == 0" }
+    - assert: { that: "{{dcos_group.status_code}} == 204" }
+
+    - dcos_group_member:
+        gid: "{{group_name}}"
+        uid: '{{user_one}}'
+      register: 'dcos_group'
+    - assert: { that: "{{dcos_group.changed}} == True" }
+    - assert: { that: "{{dcos_group.failed}} == False" }
+    - assert: { that: "{{dcos_group.rc}} == 0" }
+    - assert: { that: "{{dcos_group.status_code}} == 204" }
+
+    - dcos_group_member:
+        gid: "{{group_name}}"
+        uid: '{{user_two}}'
+      register: 'dcos_group'
+    - assert: { that: "{{dcos_group.changed}} == True" }
+    - assert: { that: "{{dcos_group.failed}} == False" }
+    - assert: { that: "{{dcos_group.rc}} == 0" }
+    - assert: { that: "{{dcos_group.status_code}} == 204" }
+
+    - dcos_group_member:
+        gid: "{{group_name}}"
+        uid: '{{user_one}}'
+        state: 'absent'
+      register: 'dcos_group'
+    - assert: { that: "{{dcos_group.changed}} == True" }
+    - assert: { that: "{{dcos_group.failed}} == False" }
+    - assert: { that: "{{dcos_group.rc}} == 0" }
+    - assert: { that: "{{dcos_group.status_code}} == 204" }
+
+    - dcos_group:
+        gid: "{{group_name}}"
+        state: 'absent'
+      register: 'dcos_group'
+    - assert: { that: "{{dcos_group.changed}} == True" }
+    - assert: { that: "{{dcos_group.failed}} == False" }
+    - assert: { that: "{{dcos_group.rc}} == 0" }
+    - assert: { that: "{{dcos_group.status_code}} == 204" }

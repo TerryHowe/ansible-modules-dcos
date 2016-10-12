@@ -48,8 +48,8 @@ class DcosClient:
         if result['status_code'] >= 300:
             result['rc'] = 1
             result['failed'] = True
+            result['msg'] = response.text
             result['debug'] = {
-                'text': response.text,
                 'request': {
                     'url': url,
                     'body': body,
@@ -73,6 +73,8 @@ class DcosClient:
         response = requests.put(url, json=body, headers=headers, verify=self.ssl_verify)
         result = self._result_create(response, url, headers, body)
         if result['status_code'] == 201:
+            result['changed'] = True
+        if result['status_code'] == 204:
             result['changed'] = True
         return result
 

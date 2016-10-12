@@ -2,17 +2,17 @@
 
 DOCUMENTATION = '''
 ---
-module: dcos_group
-short_description: Manage groups on DCOS
+module: dcos_group_member
+short_description: Manage groups members on DCOS
 options:
     gid:
         description:
             - The unique name for the group account.
         required: true
-    description:
+    uid:
         description:
-            - Optional group description during group creation.
-        required: false
+            - The uid of a user
+        required: true
     state:
         description:
             - If C(present), ensure the group exists. If C(absent),
@@ -23,14 +23,15 @@ options:
 '''
 
 EXAMPLES = '''
-- name: Create a DCOS group
-  dcos_group:
+- name: Add a DCOS group member
+  dcos_group_member:
      gid: "mygroupname"
-     description: "My first group"
+     uid: "myuid1"
 
-- name: Remove a DCOS group
-  dcos_group:
-     uid: "mygroupname"
+- name: Remove a DCOS group member
+  dcos_group_member:
+     gid: "mygroupname"
+     uid: "myuid1"
      state: absent
 '''
 
@@ -38,25 +39,28 @@ from ansible.module_utils.basic import *
 from ansible.module_utils import dcos
 
 
-def dcos_group_absent(params):
+def dcos_group_member_absent(params):
     client = dcos.DcosClient()
-    result = client.delete('/groups/{}'.format(params['gid']))
+    gid = params['gid']
+    uid = params['uid']
+    path = '/groups/{gid}/users/{uid}'.format(gid=gid, uid=uid)
+    result = client.delete(path)
     module.exit_json(**result)
 
 
-def dcos_group_present(params):
+def dcos_group_member_present(params):
     client = dcos.DcosClient()
-    body = {
-        'description': params['description']
-    }
-    path = '/groups/{}'.format(params['gid'])
-    result = client.put(path, body)
+    gid = params['gid']
+    uid = params['uid']
+    path = '/groups/{gid}/users/{uid}'.format(gid=gid, uid=uid)
+    result = client.put(path, {})
     if result['changed']:
         module.exit_json(**result)
     elif result['status_code'] != 409:
         module.fail_json(**result)
-
-    result = client.patch(path, body)
+    result['changed'] = False
+    result['failed'] = False
+    result['rc'] = 0
     module.exit_json(**result)
 
 
@@ -64,7 +68,7 @@ def main():
     global module
     module = AnsibleModule(argument_spec={
         'gid': { 'type': 'str', 'required': True },
-        'description': { 'type': 'str', 'required': False },
+        'uid': { 'type': 'str', 'required': True },
         'state': {
             'type': 'str',
             'required': False,
@@ -73,12 +77,9 @@ def main():
         },
     })
     if module.params['state'] == 'present':
-        if module.params['description']:
-            dcos_group_present(module.params)
-        else:
-            module.fail_json(msg="User list and description required for state=present", rc=1)
+        dcos_group_member_present(module.params)
     else:
-        dcos_group_absent(module.params)
+        dcos_group_member_absent(module.params)
 
 
 if __name__ == '__main__':
