@@ -55,7 +55,6 @@ def dcos_group_present(params):
         module.exit_json(**result)
     elif result['status_code'] != 409:
         module.fail_json(**result)
-
     result = client.patch(path, body)
     module.exit_json(**result)
 
@@ -75,10 +74,8 @@ def main():
     if module.params['state'] == 'present':
         if module.params['description']:
             dcos_group_present(module.params)
-        else:
-            module.fail_json(msg="User list and description required for state=present", rc=1)
-    else:
-        dcos_group_absent(module.params)
+        module.fail_json(msg="User list and description required for state=present", rc=1)
+    dcos_group_absent(module.params)
 
 
 if __name__ == '__main__':
