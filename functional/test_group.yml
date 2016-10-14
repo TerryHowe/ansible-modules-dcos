@@ -1,8 +1,8 @@
 ---
 - hosts: localhost
   vars:
-    user_one: 'one'
-    user_two: 'two'
+    user_one: 'bobone'
+    user_two: 'bobtwo'
     group_name: 'bobs'
   tasks:
     - dcos_group: gid="{{group_name}}" state='absent'
@@ -17,7 +17,7 @@
 
     - dcos_group:
         gid: "{{group_name}}"
-        description: '{{group_name}}'
+        description: 'the {{group_name}}'
       register: 'dcos_group'
     - assert: { that: "{{dcos_group.changed}} == True" }
     - assert: { that: "{{dcos_group.failed}} == False" }
@@ -26,7 +26,7 @@
 
     - dcos_group:
         gid: "{{group_name}}"
-        description: '{{group_name}} noo'
+        description: 'The {{group_name}}'
       register: 'dcos_group'
     - assert: { that: "{{dcos_group.changed}} == True" }
     - assert: { that: "{{dcos_group.failed}} == False" }
@@ -69,3 +69,6 @@
     - assert: { that: "{{dcos_group.failed}} == False" }
     - assert: { that: "{{dcos_group.rc}} == 0" }
     - assert: { that: "{{dcos_group.status_code}} == 204" }
+
+    - dcos_user: uid="{{user_one}}" state='absent'
+    - dcos_user: uid="{{user_two}}" state='absent'

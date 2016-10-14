@@ -1,5 +1,6 @@
 from os.path import expanduser
 import requests
+import subprocess
 import toml
 import urlparse
 
@@ -9,11 +10,16 @@ class DcosClient:
         core = self._read_configuration()
         self.token = core.get('dcos_acs_token', '')
         if not self.token:
-            subprocess.check_output("dcos auth login".split())
+            try:
+                result = subprocess.check_output("dcos auth login".split())
+            except Exception as e:
+                print result
+                raise e
             core = self._read_configuration()
             self.token = core.get('dcos_acs_token', 'bogus')
         self.url = self._parse_url(core.get('dcos_url', ''))
-        self.ssl_verify = core.get('ssl_verify', True)
+        ssl_verify = str(core.get('ssl_verify', "true")).lower()
+        self.ssl_verify = ssl_verify in ['true', 'yes']
 
     def _read_configuration(self):
         home = expanduser("~")
