@@ -9,7 +9,7 @@ files = [
 long_description = open('README.rst', 'r').read()
 
 setup(name='ansible-modules-dcos',
-      version='1.0.4',
+      version='1.0.5',
       description='DCOS Ansible Modules',
       long_description=long_description,
       url='https://github.com/TerryHowe/ansible-modules-dcos',
