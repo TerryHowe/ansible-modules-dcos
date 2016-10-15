@@ -8,7 +8,7 @@ files = [
 
 long_description = """
 
-Ansible modules for Mesospher DC/OS.
+Ansible modules for Mesospher DC/OS.  Modules exist to create users, groups and acls.
 
 Usage
 -----
@@ -19,16 +19,15 @@ The following example creates user bob::
     - hosts: localhost
       tasks:
         - dcos_user: 
-            uid: "bob"
-            description: 'bob'
+            uid: "bobslydell"
+            description: 'Bob Slydell'
             password: 'fooBar123ASDF'
             state: present
-            dcos_credentials: "{{ dcos_facts.ansible_facts.dcos_credentials }}"
 
 """
 
 setup(name='ansible-modules-dcos',
-      version='0.1',
+      version='1.0.0',
       description='DCOS Ansible Modules',
       long_description=long_description,
       url='https://github.com/TerryHowe/ansible-modules-dcos',

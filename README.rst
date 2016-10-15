@@ -16,8 +16,8 @@ Create a user::
     - hosts: localhost
       tasks:
         - dcos_user: 
-            uid: "bob"
-            description: 'bob'
+            uid: "bobslydell"
+            description: 'bobslydell'
             password: 'fooBar123ASDF'
             state: present
             dcos_credentials: "{{ dcos_facts.ansible_facts.dcos_credentials }}"

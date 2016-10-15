@@ -1,8 +1,8 @@
 ---
 - hosts: localhost
   vars:
-    user_one: 'bob1'
-    user_two: 'bob2'
+    user_one: 'bobslydell'
+    user_two: 'bobporter'
     group_name: 'bobs-admin'
     bobs_acl_name: 'dcos:adminrouter:service:bobs-acl'
     real_acl_name: 'dcos:adminrouter:service:marathon'
