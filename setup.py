@@ -6,28 +6,10 @@ files = [
     "ansible/modules/dcos",
 ]
 
-long_description = """
-
-Ansible modules for Mesospher DC/OS.  Modules exist to create users, groups and acls.
-
-Usage
------
-
-The following example creates user bob::
-
-    ---
-    - hosts: localhost
-      tasks:
-        - dcos_user: 
-            uid: "bobslydell"
-            description: 'Bob Slydell'
-            password: 'fooBar123ASDF'
-            state: present
-
-"""
+long_description = open('README.rst', 'r').read()
 
 setup(name='ansible-modules-dcos',
-      version='1.0.0',
+      version='1.0.3',
       description='DCOS Ansible Modules',
       long_description=long_description,
       url='https://github.com/TerryHowe/ansible-modules-dcos',
@@ -35,9 +17,9 @@ setup(name='ansible-modules-dcos',
       author_email='kevin.wood@example.com',
       license='MIT',
       packages=files,
-      install_requires = [
-        'ansible>2.0.0',
-        'dcoscli>0.4.5',
+      requires = [
+        'ansible (>2.0.0)',
+        'dcoscli (>0.4.5)',
         'toml',
       ],
 )
