@@ -44,23 +44,21 @@ class DcosClient:
             'Authorization': "token={}".format(self.token),
         }
 
-    def _result_create(self, response, url, headers, body=""):
+    def _result_create(self, response, url, headers, action, body=""):
         result = {
             'changed': False,
             'rc': 0,
             'failed': False,
+            'request_action': action,
+            'request_url': url,
         }
+        if body:
+            result['request_body'] = body
         result['status_code'] = response.status_code
         if result['status_code'] >= 300:
             result['rc'] = 1
             result['failed'] = True
             result['msg'] = response.text
-            result['debug'] = {
-                'request': {
-                    'url': url,
-                    'body': body,
-                }
-            }
         try:
             result['json'] = response.json()
         except Exception:
@@ -71,24 +69,24 @@ class DcosClient:
         headers = self._get_headers()
         url = self.url.format(endpoint=endpoint)
         response = requests.get(url, headers=headers, verify=self.ssl_verify)
-        return self._result_create(response, url, headers)
+        return self._result_create(response, url, headers, 'get')
 
-    def put(self, endpoint, body):
+    def put(self, endpoint, body={}):
         headers = self._get_headers()
         url = self.url.format(endpoint=endpoint)
         response = requests.put(url, json=body, headers=headers, verify=self.ssl_verify)
-        result = self._result_create(response, url, headers, body)
+        result = self._result_create(response, url, headers, 'put', body)
         if result['status_code'] == 201:
             result['changed'] = True
         if result['status_code'] == 204:
             result['changed'] = True
         return result
 
-    def patch(self, endpoint, body):
+    def patch(self, endpoint, body={}):
         headers = self._get_headers()
         url = self.url.format(endpoint=endpoint)
         response = requests.patch(url, json=body, headers=headers, verify=self.ssl_verify)
-        result = self._result_create(response, url, headers, body)
+        result = self._result_create(response, url, headers, 'patch', body)
         if result['status_code'] == 204:
             result['changed'] = True
         return result
@@ -97,7 +95,7 @@ class DcosClient:
         headers = self._get_headers()
         url = self.url.format(endpoint=endpoint)
         response = requests.delete(url, headers=headers, verify=self.ssl_verify)
-        result = self._result_create(response, url, headers)
+        result = self._result_create(response, url, headers, 'delete')
         if result['status_code'] < 300:
             result['changed'] = True
         if result['status_code'] == 400: # Does Not Exist

@@ -4,9 +4,11 @@
     user_one: 'bob1'
     user_two: 'bob2'
     group_name: 'bobs-admin'
-    acl_name: 'bobs-admin'
+    bobs_acl_name: 'dcos:adminrouter:service:bobs-acl'
+    real_acl_name: 'dcos:adminrouter:service:marathon'
   tasks:
-    - dcos_acl: rid="{{acl_name}}" state='absent'
+    - dcos_acl: rid="bobs-acl" state='absent'
+    - dcos_acl: rid="{{bobs_acl_name}}" state='absent'
 
     - dcos_user: uid="{{user_one}}" description="{{user_one}}" password="Ab12!"
     - dcos_user: uid="{{user_two}}" description="{{user_two}}" password="Ab12!"
@@ -15,16 +17,58 @@
     - dcos_group_member: gid="{{group_name}}" uid='{{user_two}}'
 
     - dcos_acl:
-        rid: "{{acl_name}}"
-        description: "{{acl_name}} acl"
+        rid: "{{bobs_acl_name}}"
+        description: "{{bobs_acl_name}} acl"
       register: 'dcos_acl'
     - assert: { that: "{{dcos_acl.changed}} == True" }
     - assert: { that: "{{dcos_acl.failed}} == False" }
     - assert: { that: "{{dcos_acl.rc}} == 0" }
     - assert: { that: "{{dcos_acl.status_code}} == 201" }
 
+    - dcos_acl_user:
+        rid: "{{real_acl_name}}"
+        uid: "{{user_one}}"
+        permission: "read"
+      register: 'dcos_acl'
+    - assert: { that: "{{dcos_acl.changed}} == True" }
+    - assert: { that: "{{dcos_acl.failed}} == False" }
+    - assert: { that: "{{dcos_acl.rc}} == 0" }
+    - assert: { that: "{{dcos_acl.status_code}} == 204" }
+
+    - dcos_acl_user:
+        rid: "{{real_acl_name}}"
+        uid: "{{user_one}}"
+        permission: "read"
+        state: "absent"
+      register: 'dcos_acl'
+    - assert: { that: "{{dcos_acl.changed}} == True" }
+    - assert: { that: "{{dcos_acl.failed}} == False" }
+    - assert: { that: "{{dcos_acl.rc}} == 0" }
+    - assert: { that: "{{dcos_acl.status_code}} == 204" }
+
+    - dcos_acl_group:
+        rid: "{{real_acl_name}}"
+        gid: "{{group_name}}"
+        permission: "read"
+      register: 'dcos_acl'
+    - assert: { that: "{{dcos_acl.changed}} == True" }
+    - assert: { that: "{{dcos_acl.failed}} == False" }
+    - assert: { that: "{{dcos_acl.rc}} == 0" }
+    - assert: { that: "{{dcos_acl.status_code}} == 204" }
+
+    - dcos_acl_group:
+        rid: "{{real_acl_name}}"
+        gid: "{{group_name}}"
+        permission: "read"
+        state: "absent"
+      register: 'dcos_acl'
+    - assert: { that: "{{dcos_acl.changed}} == True" }
+    - assert: { that: "{{dcos_acl.failed}} == False" }
+    - assert: { that: "{{dcos_acl.rc}} == 0" }
+    - assert: { that: "{{dcos_acl.status_code}} == 204" }
+
     - dcos_acl:
-        rid: "{{acl_name}}"
+        rid: "{{bobs_acl_name}}"
         state: "absent"
       register: 'dcos_acl'
     - assert: { that: "{{dcos_acl.changed}} == True" }
