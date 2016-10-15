@@ -46,6 +46,17 @@
     - assert: { that: "{{dcos_acl.rc}} == 0" }
     - assert: { that: "{{dcos_acl.status_code}} == 204" }
 
+    - dcos_acl_user:
+        rid: "{{real_acl_name}}"
+        uid: "{{user_one}}"
+        permission: "read"
+        state: "absent"
+      register: 'dcos_acl'
+    - assert: { that: "{{dcos_acl.changed}} == False" }
+    - assert: { that: "{{dcos_acl.failed}} == False" }
+    - assert: { that: "{{dcos_acl.rc}} == 0" }
+    - assert: { that: "{{dcos_acl.status_code}} == 400" }
+
     - dcos_acl_group:
         rid: "{{real_acl_name}}"
         gid: "{{group_name}}"
@@ -60,6 +71,26 @@
         rid: "{{real_acl_name}}"
         gid: "{{group_name}}"
         permission: "read"
+        state: "absent"
+      register: 'dcos_acl'
+    - assert: { that: "{{dcos_acl.changed}} == True" }
+    - assert: { that: "{{dcos_acl.failed}} == False" }
+    - assert: { that: "{{dcos_acl.rc}} == 0" }
+    - assert: { that: "{{dcos_acl.status_code}} == 204" }
+
+    - dcos_acl_group:
+        rid: "{{real_acl_name}}"
+        gid: "{{group_name}}"
+        permission: "read"
+        state: "absent"
+      register: 'dcos_acl'
+    - assert: { that: "{{dcos_acl.changed}} == False" }
+    - assert: { that: "{{dcos_acl.failed}} == False" }
+    - assert: { that: "{{dcos_acl.rc}} == 0" }
+    - assert: { that: "{{dcos_acl.status_code}} == 400" }
+
+    - dcos_acl:
+        rid: "{{bobs_acl_name}}"
         state: "absent"
       register: 'dcos_acl'
     - assert: { that: "{{dcos_acl.changed}} == True" }
@@ -71,10 +102,10 @@
         rid: "{{bobs_acl_name}}"
         state: "absent"
       register: 'dcos_acl'
-    - assert: { that: "{{dcos_acl.changed}} == True" }
+    - assert: { that: "{{dcos_acl.changed}} == False" }
     - assert: { that: "{{dcos_acl.failed}} == False" }
     - assert: { that: "{{dcos_acl.rc}} == 0" }
-    - assert: { that: "{{dcos_acl.status_code}} == 204" }
+    - assert: { that: "{{dcos_acl.status_code}} == 400" }
 
     - dcos_group: gid="{{group_name}}" state='absent'
     - dcos_user: uid="{{user_one}}" state='absent'
