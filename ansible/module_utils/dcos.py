@@ -56,9 +56,10 @@ class DcosClient:
             result['request_body'] = body
         result['status_code'] = response.status_code
         if result['status_code'] >= 300:
-            result['rc'] = 1
-            result['failed'] = True
-            result['msg'] = response.text
+            if result['status_code'] != 409:
+                result['rc'] = 1
+                result['failed'] = True
+                result['msg'] = response.text
         try:
             result['json'] = response.json()
         except Exception:
