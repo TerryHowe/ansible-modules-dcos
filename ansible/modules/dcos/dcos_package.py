@@ -74,15 +74,18 @@ def _check_installed_packages(params):
     rc, output = dcos_cli(['package', 'list', '--json'])
     package_list = json.loads(output)
     for package in package_list:
-        if params['app_id'] in package['apps']:
-            if params['package'] == package['name']:
-                # package already installed
-                return True, package_list
-            else:
-                # wrong package installed at app_id!
-                module.fail_json(msg='Wrong package ({package}) installed at app_id ({appid})!'.format(
-                        package=package['name'], appid=params['app_id']
-                    ))
+        if 'apps' not in package:
+            continue
+        if params['app_id'] not in package['apps']:
+            continue
+        if params['package'] == package['name']:
+            # package already installed
+            return True, package_list
+        else:
+            # wrong package installed at app_id!
+            module.fail_json(msg='Wrong package ({package}) installed at app_id ({appid})!'.format(
+                    package=package['name'], appid=params['app_id']
+                ))
     return False, package_list
 
 
