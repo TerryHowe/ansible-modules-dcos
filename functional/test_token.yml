@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  tasks:
+    - dcos_token:
+      register: 'dcos_token'
+    - assert: { that: "{{dcos_token.changed}} == False" }
+    - assert: { that: "{{dcos_token.failed}} == False" }
+    - assert: { that: "{{dcos_token.rc}} == 0" }
+    - assert: { that: "'{{dcos_token.value}}' != ''" }
