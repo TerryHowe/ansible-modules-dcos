@@ -49,6 +49,10 @@ Print the DC/OS token::
 
     - debug: msg="{{lookup('dcos_token')}}"
 
+Print the DC/OS token header::
+
+    - debug: msg="{{lookup('dcos_token_header')}}"
+
 License
 -------
 
