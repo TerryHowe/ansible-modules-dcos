@@ -7,3 +7,4 @@
     - assert: { that: "{{dcos_token.failed}} == False" }
     - assert: { that: "{{dcos_token.rc}} == 0" }
     - assert: { that: "'{{dcos_token.value}}' != ''" }
+    - debug: msg="{{lookup('dcos_token')}}"

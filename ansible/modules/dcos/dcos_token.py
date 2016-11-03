@@ -16,17 +16,20 @@ from ansible.module_utils.basic import *
 from ansible.module_utils import dcos
 
 
-def main():
-    global module
-    module = AnsibleModule(argument_spec={})
+def get_token():
     client = dcos.DcosClient()
-    result = {
+    return {
         'changed': False,
         'rc': 0,
         'failed': False,
         'value': client.token,
     }
-    module.exit_json(**result)
+
+
+def main():
+    global module
+    module = AnsibleModule(argument_spec={})
+    module.exit_json(**get_token())
 
 
 if __name__ == '__main__':
