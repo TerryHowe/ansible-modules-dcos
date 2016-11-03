@@ -10,7 +10,7 @@ long_description = open('README.rst', 'r').read()
 
 setup(
     name='ansible-modules-dcos',
-    version='1.1.0',
+    version='1.2.0',
     description='DCOS Ansible Modules',
     long_description=long_description,
     url='https://github.com/TerryHowe/ansible-modules-dcos',
