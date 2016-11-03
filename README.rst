@@ -45,6 +45,10 @@ Add group to ACL::
         gid: "bobs"
         permission: "read"
 
+Print the DC/OS token::
+
+    - debug: msg="{{lookup('dcos_token')}}"
+
 License
 -------
 
