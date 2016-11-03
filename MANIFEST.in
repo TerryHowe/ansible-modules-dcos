@@ -3,8 +3,5 @@ include ChangeLog
 include LICENSE
 include README.rst
 exclude .gitignore
-include ansible/plugins/lookup/*.py
-include ansible/module_utils/dcos.py
-exclude ansible/modules/dcos/__init__.py
 
 global-exclude *.pyc
