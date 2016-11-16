@@ -6,7 +6,7 @@ import urlparse
 
 
 class DcosClient:
-    def __init__(self):
+    def __init__(self, service_path='acs/api/v1'):
         core = self._read_configuration()
         self.token = core.get('dcos_acs_token', '')
         if not self.token:
@@ -17,6 +17,7 @@ class DcosClient:
                 raise e
             core = self._read_configuration()
             self.token = core.get('dcos_acs_token', 'bogus')
+        self.service_path = service_path
         self.url = self._parse_url(core.get('dcos_url', ''))
         ssl_verify = str(core.get('ssl_verify', "true")).lower()
         self.ssl_verify = ssl_verify in ['true', 'yes']
@@ -34,7 +35,7 @@ class DcosClient:
         result = urlparse.urlsplit(url)
         netloc = result.netloc.split('@')[-1]
         result = result._replace(netloc=netloc)
-        path = "acs/api/v1{endpoint}"
+        path = self.service_path + "{endpoint}"
         result = result._replace(path=path)
         return urlparse.urlunsplit(result)
 
