@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  tasks:
+    - dcos_marathon_leader:
+      register: 'dcos_marathon'
+    - assert: { that: "{{dcos_marathon.changed}} == False" }
+    - assert: { that: "{{dcos_marathon.failed}} == False" }
+    - assert: { that: "{{dcos_marathon.rc}} == 0" }
+    - assert: { that: "{{dcos_marathon.status_code}} == 200" }
+    - assert: { that: "'{{dcos_marathon.leader}}' != ''" }
