@@ -53,6 +53,11 @@ Print the DC/OS token header::
 
     - debug: msg="{{lookup('dcos_token_header')}}"
 
+Get marathon leader::
+
+    - dcos_marathon_leader:
+      register: marathon
+
 License
 -------
 
